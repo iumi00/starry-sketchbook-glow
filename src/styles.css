@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Caveat:wght@400;600&family=Noto+Serif+SC:wght@300;400&family=Ma+Shan+Zheng&display=swap');
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -9,7 +10,6 @@
    纯黑极夜 + 手绘铅笔肌理 + 独立游戏美学
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Caveat:wght@400;600&family=Noto+Serif+SC:wght@300;400&family=Ma+Shan+Zheng&display=swap');
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
