@@ -9,8 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrailRouteImport } from './routes/trail'
+import { Route as KeeperRouteImport } from './routes/keeper'
+import { Route as GlimmerRouteImport } from './routes/glimmer'
+import { Route as EchoRouteImport } from './routes/echo'
+import { Route as CarveRouteImport } from './routes/carve'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TrailRoute = TrailRouteImport.update({
+  id: '/trail',
+  path: '/trail',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeeperRoute = KeeperRouteImport.update({
+  id: '/keeper',
+  path: '/keeper',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlimmerRoute = GlimmerRouteImport.update({
+  id: '/glimmer',
+  path: '/glimmer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EchoRoute = EchoRouteImport.update({
+  id: '/echo',
+  path: '/echo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarveRoute = CarveRouteImport.update({
+  id: '/carve',
+  path: '/carve',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +49,83 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/carve': typeof CarveRoute
+  '/echo': typeof EchoRoute
+  '/glimmer': typeof GlimmerRoute
+  '/keeper': typeof KeeperRoute
+  '/trail': typeof TrailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/carve': typeof CarveRoute
+  '/echo': typeof EchoRoute
+  '/glimmer': typeof GlimmerRoute
+  '/keeper': typeof KeeperRoute
+  '/trail': typeof TrailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/carve': typeof CarveRoute
+  '/echo': typeof EchoRoute
+  '/glimmer': typeof GlimmerRoute
+  '/keeper': typeof KeeperRoute
+  '/trail': typeof TrailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/carve' | '/echo' | '/glimmer' | '/keeper' | '/trail'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/carve' | '/echo' | '/glimmer' | '/keeper' | '/trail'
+  id: '__root__' | '/' | '/carve' | '/echo' | '/glimmer' | '/keeper' | '/trail'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CarveRoute: typeof CarveRoute
+  EchoRoute: typeof EchoRoute
+  GlimmerRoute: typeof GlimmerRoute
+  KeeperRoute: typeof KeeperRoute
+  TrailRoute: typeof TrailRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trail': {
+      id: '/trail'
+      path: '/trail'
+      fullPath: '/trail'
+      preLoaderRoute: typeof TrailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keeper': {
+      id: '/keeper'
+      path: '/keeper'
+      fullPath: '/keeper'
+      preLoaderRoute: typeof KeeperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/glimmer': {
+      id: '/glimmer'
+      path: '/glimmer'
+      fullPath: '/glimmer'
+      preLoaderRoute: typeof GlimmerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/echo': {
+      id: '/echo'
+      path: '/echo'
+      fullPath: '/echo'
+      preLoaderRoute: typeof EchoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carve': {
+      id: '/carve'
+      path: '/carve'
+      fullPath: '/carve'
+      preLoaderRoute: typeof CarveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +138,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CarveRoute: CarveRoute,
+  EchoRoute: EchoRoute,
+  GlimmerRoute: GlimmerRoute,
+  KeeperRoute: KeeperRoute,
+  TrailRoute: TrailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
