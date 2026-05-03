@@ -221,29 +221,30 @@ export function IntroAnimation({ onDone }: { onDone: () => void }) {
     return () => cancelAnimationFrame(raf);
   }, [phase]);
 
-  // 收敛 + 淡出
+  // 收敛 + 淡出（在淡出过程中提前通知主页挂载，避免闪屏）
   useEffect(() => {
     if (phase !== "converge") return;
+    let notified = false;
     const fadeT = setTimeout(() => {
-      const duration = 700;
+      const duration = 900;
       const startTime = Date.now();
       let raf = 0;
       const animate = () => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         setConvergeFade(1 - progress);
+        // 淡到一半时主页已能透出，安全地 unmount intro
+        if (!notified && progress > 0.55) {
+          notified = true;
+          onDone();
+        }
         if (progress < 1) raf = requestAnimationFrame(animate);
         else setPhase("done");
       };
       raf = requestAnimationFrame(animate);
-    }, 500);
+      return () => cancelAnimationFrame(raf);
+    }, 400);
     return () => clearTimeout(fadeT);
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "done") return;
-    const t = setTimeout(onDone, 100);
-    return () => clearTimeout(t);
   }, [phase, onDone]);
 
   const getCollapsedPosition = useCallback(
