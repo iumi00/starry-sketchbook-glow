@@ -53,13 +53,10 @@ export function MainScene() {
       {/* 地平线 + 企鹅 — 放在下方 */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[38%]">
         {/* 企鹅：站在弧线顶点上 */}
-        {/* 企鹅站在弧顶上方一点（红框位置） */}
+        {/* 企鹅固定站在弧顶上 */}
         <div
           className="absolute left-1/2 -translate-x-1/2 z-10"
-          style={{
-            bottom: "calc(32% + 36px)",
-            animation: "drift 6s ease-in-out infinite",
-          }}
+          style={{ bottom: "calc(32% + 36px)" }}
         >
           <Penguin size={40} />
         </div>
