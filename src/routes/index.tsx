@@ -14,21 +14,11 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [showIntro, setShowIntro] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !sessionStorage.getItem("intro-played");
-  });
+  const [showIntro, setShowIntro] = useState(true);
   return (
     <>
       <MainScene />
-      {showIntro && (
-        <IntroAnimation
-          onDone={() => {
-            sessionStorage.setItem("intro-played", "1");
-            setShowIntro(false);
-          }}
-        />
-      )}
+      {showIntro && <IntroAnimation onDone={() => setShowIntro(false)} />}
     </>
   );
 }
