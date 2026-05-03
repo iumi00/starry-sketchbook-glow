@@ -53,16 +53,17 @@ export function MainScene() {
       {/* 地平线 + 企鹅 — 放在下方 */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[38%]">
         {/* 企鹅：站在弧线顶点上 */}
-        {/* 弧顶位置：容器底部往上约 (1 - 60/400)*38% ≈ 32%。
-            企鹅 svg 底边 = 脚底，对齐弧顶 */}
+        {/* 弧顶 ≈ 容器底部上方 32%（弧高 60/400 = 15% × 38vh）。
+            企鹅 viewBox 底边 y=84，脚底 y=83 几乎贴底，svg 底部对齐弧顶。
+            微调 -2px 让脚陷入弧线一点点 */}
         <div
           className="absolute left-1/2 -translate-x-1/2 z-10"
           style={{
-            bottom: "32%",
+            bottom: "calc(32% - 2px)",
             animation: "drift 6s ease-in-out infinite",
           }}
         >
-          <Penguin size={32} />
+          <Penguin size={24} />
         </div>
 
         {/* 地球弧线 */}
