@@ -56,9 +56,9 @@ export function MainScene() {
         {/* 企鹅固定站在弧顶上 */}
         <div
           className="absolute left-1/2 -translate-x-1/2 z-10"
-          style={{ bottom: "calc(32% + 38px)" }}
+          style={{ bottom: "calc(32% + 36px)" }}
         >
-          <Penguin size={40} />
+          <Penguin size={38} />
         </div>
 
         {/* 地球弧线 */}
