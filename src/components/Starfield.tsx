@@ -1,8 +1,7 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 /**
- * 闪烁的方块/圆点星空背景
- * 一闪一闪的手绘风方块/圆点星星
+ * 闪烁的方块/圆点星空背景（仅客户端渲染，避免 SSR hydration mismatch）
  */
 type Props = {
   count?: number;
@@ -10,10 +9,14 @@ type Props = {
 };
 
 export function Starfield({ count = 80, className = "" }: Props) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const stars = useMemo(() => {
+    if (!mounted) return [];
     return Array.from({ length: count }, (_, i) => {
       const isSquare = Math.random() > 0.55;
-      const size = Math.random() * 2 + 1; // 1-3px
+      const size = Math.random() * 2 + 1;
       return {
         i,
         isSquare,
@@ -25,7 +28,7 @@ export function Starfield({ count = 80, className = "" }: Props) {
         opacity: 0.3 + Math.random() * 0.7,
       };
     });
-  }, [count]);
+  }, [count, mounted]);
 
   return (
     <div
