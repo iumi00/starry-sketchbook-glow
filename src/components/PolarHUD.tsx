@@ -8,20 +8,25 @@ const WEATHERS = [
 
 export function PolarHUD() {
   const [w, setW] = useState(0);
+  const [code, setCode] = useState<number | null>(null);
+
+  // 客户端再生成 daily code，避免 SSR/CSR hydration mismatch
+  useEffect(() => {
+    const stored = Number(sessionStorage.getItem("dailyCode") ?? 0);
+    if (stored) {
+      setCode(stored);
+    } else {
+      const n = Math.floor(Math.random() * 900) + 100;
+      sessionStorage.setItem("dailyCode", String(n));
+      setCode(n);
+    }
+  }, []);
+
   useEffect(() => {
     const id = setInterval(() => setW((v) => (v + 1) % WEATHERS.length), 7000);
     return () => clearInterval(id);
   }, []);
   const cur = WEATHERS[w];
-  // 今日代号：固定一个种子，session 内不变
-  const code = (typeof window !== "undefined"
-    ? Number(sessionStorage.getItem("dailyCode") ?? 0) ||
-      (() => {
-        const n = Math.floor(Math.random() * 900) + 100;
-        sessionStorage.setItem("dailyCode", String(n));
-        return n;
-      })()
-    : 92);
 
   return (
     <>
@@ -40,8 +45,8 @@ export function PolarHUD() {
       <div className="absolute top-4 right-4 z-30 flex items-center gap-2 select-none">
         <div className="text-right">
           <div className="text-[10px] tracking-[0.25em] text-muted-foreground">今日代号</div>
-          <div className="text-xs tracking-[0.2em] text-foreground/90 font-display">
-            碎星 #{String(code).padStart(3, "0")}
+          <div className="text-xs tracking-[0.2em] text-foreground/90 font-display min-w-[5em]">
+            {code !== null ? `碎星 #${String(code).padStart(3, "0")}` : "碎星 #···"}
           </div>
         </div>
         <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center bg-card/40 backdrop-blur-sm">
