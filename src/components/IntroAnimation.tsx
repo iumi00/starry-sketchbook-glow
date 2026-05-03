@@ -428,15 +428,21 @@ export function IntroAnimation({ onDone }: { onDone: () => void }) {
           style={{ opacity: finalSparkleOpacity }}
         >
           <svg
-            width="44"
-            height="44"
+            width="48"
+            height="48"
             viewBox="0 0 40 40"
-            className="drop-shadow-[0_0_15px_rgba(255,255,255,0.85)]"
+            className="drop-shadow-[0_0_18px_rgba(255,255,255,0.9)]"
           >
+            {/* 对称四芒星：四个尖角 + 中心收腰 */}
             <path
-              d="M20 0 C20 10 22 18 20 20 C18 18 10 20 0 20 C10 20 18 22 20 20 C22 22 20 30 20 40 C20 30 18 22 20 20 C22 18 30 20 40 20 C30 20 22 18 20 20 C18 18 20 10 20 0 Z"
+              d="M 20 0 Q 22 18 20 20 Q 18 18 20 0 Z
+                 M 40 20 Q 22 22 20 20 Q 22 18 40 20 Z
+                 M 20 40 Q 18 22 20 20 Q 22 22 20 40 Z
+                 M 0 20 Q 18 18 20 20 Q 18 22 0 20 Z"
               fill="white"
             />
+            {/* 中心高光圆点 */}
+            <circle cx="20" cy="20" r="1.6" fill="white" />
           </svg>
         </div>
       )}
