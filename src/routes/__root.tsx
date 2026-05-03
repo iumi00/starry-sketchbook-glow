@@ -56,8 +56,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="dark bg-background text-foreground">
-        {children}
+      <body className="dark bg-black text-foreground">
+        <div className="mx-auto max-w-md min-h-screen relative bg-background overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.8)]">
+          {children}
+        </div>
         <Scripts />
       </body>
     </html>
