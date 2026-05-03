@@ -17,8 +17,8 @@ function Index() {
   const [showIntro, setShowIntro] = useState(true);
   return (
     <>
-      {showIntro && <IntroAnimation onDone={() => setShowIntro(false)} />}
       <MainScene />
+      {showIntro && <IntroAnimation onDone={() => setShowIntro(false)} />}
     </>
   );
 }
