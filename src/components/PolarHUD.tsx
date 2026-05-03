@@ -26,7 +26,7 @@ export function PolarHUD() {
   return (
     <>
       {/* 左上：南极天气 */}
-      <div className="fixed top-4 left-4 z-30 text-[11px] tracking-widest text-muted-foreground font-cn select-none">
+      <div className="absolute top-4 left-4 z-30 text-[11px] tracking-widest text-muted-foreground font-cn select-none">
         <div className="flex items-center gap-1.5">
           <span className="opacity-70">📍</span>
           <span>南极点</span>
@@ -37,7 +37,7 @@ export function PolarHUD() {
       </div>
 
       {/* 右上：今日代号 */}
-      <div className="fixed top-4 right-4 z-30 flex items-center gap-2 select-none">
+      <div className="absolute top-4 right-4 z-30 flex items-center gap-2 select-none">
         <div className="text-right">
           <div className="text-[10px] tracking-[0.25em] text-muted-foreground">今日代号</div>
           <div className="text-xs tracking-[0.2em] text-foreground/90 font-display">
