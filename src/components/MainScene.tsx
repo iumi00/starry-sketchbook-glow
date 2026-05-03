@@ -29,8 +29,8 @@ export function MainScene() {
         style={{ animation: "shooting-star 9s linear infinite", animationDelay: "3s" }}
       />
 
-      {/* 入口列表 — 屏幕中部，纵向一列 */}
-      <nav className="absolute left-0 right-0 top-[18%] flex flex-col items-center gap-5 z-20">
+      {/* 入口列表 — 顶部 HUD 与地平线之间居中（约 28%~30%） */}
+      <nav className="absolute left-0 right-0 top-[30%] flex flex-col items-center gap-5 z-20">
         {ENTRIES.map((e, i) => (
           <Link
             key={e.to}
@@ -53,11 +53,12 @@ export function MainScene() {
       {/* 地平线 + 企鹅 — 放在下方 */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[38%]">
         {/* 企鹅：站在弧线顶点上 */}
+        {/* 容器高度 = 38vh；弧顶在容器顶部下方约 60/400=15% 处。
+            企鹅脚底要正好踩在弧顶上 → bottom = 38% - 15%*38% ≈ 32.3% */}
         <div
           className="absolute left-1/2 -translate-x-1/2 z-10"
           style={{
-            // 弧线顶点大约在容器顶部附近，企鹅底部对齐弧顶
-            bottom: "calc(38% - 4px)",
+            bottom: "calc(38% - 14px)",
             animation: "drift 6s ease-in-out infinite",
           }}
         >
