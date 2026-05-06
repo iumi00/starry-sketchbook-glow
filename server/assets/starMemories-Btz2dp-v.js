@@ -1,0 +1,251 @@
+const generateRandomTime = () => {
+  const hour = String(Math.floor(Math.random() * 24)).padStart(2, "0");
+  const minute = String(Math.floor(Math.random() * 60)).padStart(2, "0");
+  return `2024.09.08 ${hour}:${minute}`;
+};
+const generateRandomTime0920 = () => {
+  const hour = String(Math.floor(Math.random() * 24)).padStart(2, "0");
+  const minute = String(Math.floor(Math.random() * 60)).padStart(2, "0");
+  return `2024.09.20 ${hour}:${minute}`;
+};
+const generateRandomTime1107 = () => {
+  const hour = String(Math.floor(Math.random() * 24)).padStart(2, "0");
+  const minute = String(Math.floor(Math.random() * 60)).padStart(2, "0");
+  return `2024.11.07 ${hour}:${minute}`;
+};
+const generateRandomTime0416 = () => {
+  const hour = String(Math.floor(Math.random() * 24)).padStart(2, "0");
+  const minute = String(Math.floor(Math.random() * 60)).padStart(2, "0");
+  return `2025.04.16 ${hour}:${minute}`;
+};
+const generateRandomTime0616 = () => {
+  const hour = String(Math.floor(Math.random() * 24)).padStart(2, "0");
+  const minute = String(Math.floor(Math.random() * 60)).padStart(2, "0");
+  return `2025.06.16 ${hour}:${minute}`;
+};
+const generateRandomTime0619 = () => {
+  const hour = String(Math.floor(Math.random() * 24)).padStart(2, "0");
+  const minute = String(Math.floor(Math.random() * 60)).padStart(2, "0");
+  return `2025.06.19 ${hour}:${minute}`;
+};
+const generateRandomTime0827 = () => {
+  const hour = String(Math.floor(Math.random() * 24)).padStart(2, "0");
+  const minute = String(Math.floor(Math.random() * 60)).padStart(2, "0");
+  return `2025.08.27 ${hour}:${minute}`;
+};
+const generateFixedTime0918 = () => {
+  return `2025.09.18 22:54`;
+};
+const generateFixedTime1019 = () => {
+  return `2025.10.19 01:10`;
+};
+const generateFixedTime1106 = () => {
+  return `2025.11.06 03:42`;
+};
+const generateFixedTime1109 = () => {
+  return `2025.11.09 00:15`;
+};
+const generateFixedTime1111 = () => {
+  return `2025.11.11 02:28`;
+};
+const generateFixedTime1222 = () => {
+  return `2025.12.22 08:14`;
+};
+const generateFixedTime0111 = () => {
+  return `2026.01.11 01:00`;
+};
+const generateFixedTime0919 = () => {
+  return `2025.09.19 01:02`;
+};
+const generateFixedTime0521 = () => {
+  return `2025.05.21 23:56`;
+};
+const generateFixedTime1118 = () => {
+  return `2024.11.18 01:55`;
+};
+const generateFixedTime0912 = () => {
+  return `2024.09.12 12:42`;
+};
+const generateFixedTime0318 = () => {
+  return `2026.03.18 21:30`;
+};
+const generateFixedTime0417 = () => {
+  return `2026.04.17 13:56`;
+};
+const generateCurrentTime = () => {
+  const now = /* @__PURE__ */ new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hour = String(now.getHours()).padStart(2, "0");
+  const minute = String(now.getMinutes()).padStart(2, "0");
+  return `${year}.${month}.${day} ${hour}:${minute}`;
+};
+const getDynamicStarMemories = () => {
+  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+    return STAR_MEMORIES_STATIC;
+  }
+  const userRecords = localStorage.getItem("userStarRecords");
+  let userMemories = [];
+  if (userRecords) {
+    try {
+      userMemories = JSON.parse(userRecords);
+    } catch (error) {
+      console.error("解析用户星轨记录失败:", error);
+      userMemories = [];
+    }
+  }
+  return [...userMemories, ...STAR_MEMORIES_STATIC];
+};
+const addUserRecordToTrail = (content, tags) => {
+  const newRecord = {
+    id: Date.now(),
+    // 使用时间戳作为唯一ID
+    date: generateCurrentTime(),
+    likes: 0,
+    // 新记录爱心数默认为0
+    content,
+    tags
+    // 保存标签信息
+  };
+  const userRecords = localStorage.getItem("userStarRecords");
+  let userMemories = [];
+  if (userRecords) {
+    try {
+      userMemories = JSON.parse(userRecords);
+    } catch (error) {
+      console.error("解析用户记录失败:", error);
+      userMemories = [];
+    }
+  }
+  userMemories.unshift(newRecord);
+  localStorage.setItem("userStarRecords", JSON.stringify(userMemories));
+  return newRecord;
+};
+const STAR_MEMORIES_STATIC = [
+  {
+    id: 20,
+    date: generateFixedTime0417(),
+    likes: 42,
+    content: '从何处谈起呢，这两天总有很多思考，或许是有在好好生活吧？也可能是生物钟呢，复活ing，我挺喜欢的？满意吧，现在的生活，听听博客，看看书，简单做做项目，有时间就出去玩，吃想吃的，买想买的，虽然实习计划总是进度缓慢，这周得开始加速了。嗯呢，在这个理工科学校，从小给自己定下理工女标签的我，就这样发现了自己更爱文学，更爱思考，虽然我不会写那样动人的文字，但我也感受它们无上的魅力。我呢，也在不断认识自己，好幸运吧，其实从小主体性就很强。我也总说自己是精致的利己主义者，外人看来或许总在做好事，我自己知道，其实我所做的一切都是自私的，自我感动的，以及"英雄主义的"。我在试图靠近"完美"、"全面"做一个理想般的女孩儿。再者，是的，我无可救药的少女骑士病，小时候的我总爱扮演那个"拯救者"，我不断追求着理想中的我，不是乖学生，不是坏孩子，而是乖巧又叛逆的，聪明又诚挚的，但事实是，是的，我心不诚。是的，我追求着"不平凡"，但也有人追求着"平凡"，谁又能知道自己究竟是在"里面"还是"外面"呢？我只知道，我在这里，人生本就没有标准答案，又是谁在定义所谓的成功呢。不以自己的想法去影响他人的选择与因果，过好自己吧，过好现在，健健康康的！继续追寻理想的自己吧！未来，管他呢！请带着热情、生命力、去肆意感受，去勇敢地做！别给自己设限，除了实力一切都是浮云，没有什么能困住我，是自己总不敢往前走！请尽情去闯吧，少看别人，多看自己，努力做好手上的每一件事！有野心、有自信、有韧性！"我轻松愉快地走上大路，我健康自由，世界在我眼前，长长褐色的大路在我面前，指向我想去的任何地方。从此，我不再希求好运气。我自己就是好运气。"'
+  },
+  {
+    id: 19,
+    date: generateFixedTime0318(),
+    likes: 42,
+    content: "在无数个不为人知的时刻 我细数着那些破碎的时刻 直到某一天 可以信手拈来 平静地再一次回看他们 并把所有负面的情绪或给予正面的阐释 或依旧埋藏 以体面的方式 放过所有 我已发感觉到自己变得强大 maybe 有时候觉得自己理智得可怕 冷静得有些不近人情 我感受着自己时间带给我的所有细小、不起眼、微微的变化 并依旧包容 喜欢 所有一直伴随着我的秉性 无论在外界看来他们是好是坏是优是劣 他们都成就着我 成为了我 我喜欢我自己 无论是什么样子的自己"
+  },
+  {
+    id: 14,
+    date: generateFixedTime0111(),
+    likes: 42,
+    content: "今晚的星星特别多 多得对于广州来说好不真实 弯弯绕绕买到了想吃的小蛋糕 呀米呀米 买完蛋糕想吃的饭店关门了qvq但是最后还是吃到了比较好吃的饭 回宿舍的时候耳机又从口袋里掉出来壳磨坏了 边上的小珠子给自己碾爆了 但是碎碎平安 嗯天气好就心情好 希望每天都天气好 每天都有这么多星星看 希望我的朋友们都不要内耗开开心心的ovo"
+  },
+  {
+    id: 13,
+    date: generateFixedTime1222(),
+    likes: 42,
+    content: "这段时间发生了很多 经历了很多 有各种各样的情绪 在今天早上 我本着不想委屈自己的原则 还是正式告别了陪伴了我三年的男孩子 提前半个小时已经坐进了教室 睡得少怎么反而没那么困呢 不知道 哎 我才19岁 还有很多钱等着我去赚呢！"
+  },
+  {
+    id: 12,
+    date: generateFixedTime1111(),
+    likes: 42,
+    content: "总有一些时刻 想到十几年前 还很小的时候 和妈妈走在夜晚的街头 那时候没有很亮的灯光 没有很高的大楼 只有楼与楼之间黑黑的小道 和一些店铺 想到这几年家里和自己的变化 夜晚忽然也很想有一个人听我说从前 说我小时候最害怕的事情 拥抱我的脆弱… 轻舟终过万重山 我们都要做自己最好的朋友。"
+  },
+  {
+    id: 11,
+    date: generateFixedTime1109(),
+    likes: 42,
+    content: "今天早上考了数学竞赛 只睡了仨小时。。然后就不想学习了 跑回家附近逛了逛 回家吃了个晚饭 把入党的函调资料送回去 然后补了补最近落下的网络热点（冲浪了一下…）"
+  },
+  {
+    id: 10,
+    date: generateFixedTime1106(),
+    likes: 42,
+    content: "别担心 花 树 太阳 小猫会治疗你。 今天是晴天 天气也没那么冷了 早上本来想赖床 拉开床帘看见阳光了照亮宿舍 马上就起床了。虽然老是说自己是阴暗老鼠人 但低温或后暖暖的晴天实在让人喜欢"
+  },
+  {
+    id: 9,
+    date: generateFixedTime1019(),
+    likes: 42,
+    content: "感觉找到了人生目标 但是还有好多事情要做啊 越来越相信 一切的发生都有利于我 看似错误的选择其实会把我们推往正确的道路吧。"
+  },
+  {
+    id: 15,
+    date: generateFixedTime0919(),
+    likes: 42,
+    content: "我的大一吗？收获了一些体重收获了一些长头发收获了五个耳洞收获了不再天天乱更新说一些乱七八糟的话的很多人点赞的朋友圈收获了很多一个人的时间收获了很多没有结果的尝试收获了不高的绩点收获了莫名其妙来的一等奖学金收获了很多0行动的flag收获了几场摸鱼的辩论赛收获了一场摸鱼的表演收获了在学校假努力的一年……我是我，我不同意我上大二。"
+  },
+  {
+    id: 8,
+    date: generateFixedTime0918(),
+    likes: 42,
+    content: "见到了更大的地方，就想走得更远"
+  },
+  {
+    id: 7,
+    date: generateRandomTime0827(),
+    likes: 42,
+    content: "在回广的高铁上，结束了东山岛的三天两夜，当时是一时兴起吧，发现马上开学了，还什么也没做，哪里也没去，干脆出去玩了。但也没有人有时间一起去，本来打算自己去的，但毕竟出省了，还是有点担心安全问题，有点胆小.jpg。于是带上了妹妹，和爸妈说了一声，就出来了。好累呢，昨天捡了一个下午的贝壳。"
+  },
+  {
+    id: 6,
+    date: generateRandomTime0619(),
+    likes: 42,
+    content: "上大学好难啊。上大学也好累呢。期末周学习不进去。好想放假呀…"
+  },
+  {
+    id: 5,
+    date: generateRandomTime0616(),
+    likes: 42,
+    content: '夏天的声音，是树上的蝉鸣、耳机里的音乐以及…忽如其来的雷雨声，还有…久久挥之而不去的，去年夏天的声音。那时的我，被频繁地记录着，耳边总是他们叽叽喳喳的声音，那时的我，还不知道夏天的蝉鸣原来这么大声…倒数的日子一天天过去，我们走向了各自期盼的未来。也不知什么时候起，我成了自己的摄影师，成了那个唯一会记录我的人，镜头里的人也从"我们"变成了"我"和"别人"。夏天的声音只剩下蝉鸣、音乐、嘈杂声、骑车时的风声，以及我自己的呼吸声。大学的生活好像不像我们当初想象的一样，日出日落，我做着单一而机械的事情，我才发现，耳机里的音乐是盖不过蝉鸣的，蝉鸣总会透过我的耳机传进耳朵，和我不时发觉的孤独感一样。那天又下起了暴雨，像我们曾一起在教室里看过的一样，但雨后总有晴天，我们也是。我常在想，我应该往哪走，但是你别担心，我从未停止努力成为我们十七岁时期望的自己，我们的梦想，一直在路上，时至今日，我的愿望还是一样，愿所有的我们，不管身边有没有人，都要勇敢向前走，因为我们一定会在高处相见。'
+  },
+  {
+    id: 16,
+    date: generateFixedTime0521(),
+    likes: 42,
+    content: "我开始适应最近的天气了 日子也好像如初般平静了 我却像留了个烙印 开始频繁记录下琐碎的事 或许是害怕痛苦蔓延 企图用频繁与痛苦对峙 或许我什么都没变 后来我才明白待人如初是一件很难的事"
+  },
+  {
+    id: 4,
+    date: generateRandomTime0416(),
+    likes: 42,
+    content: "去到之后志愿者阿姨问我们是不是学生 说我们很棒 进入特殊学校之后安排任务 有很多特别的要求 不能轻易给孩子们承诺什么的 特别多工作的叔叔阿姨 上来其实特别忐忑害怕 进到班里看到各种各样的孩子很感慨 父母怎么办 好辛苦 自己长得健康特别特别幸运了 身为学生其实也很害怕他们有什么特别的举动 但还是克服了 有一个小女孩经常在自言自语 和她说hi她会回复hi但不会停留 有小男生特别安静的 也有总是要甩手拍桌子的 但他不会伤害别人 有看起来很正常但后来发现会忽然大叫的 有特别开朗的小女孩 但和她说话她会躲避 不敢和生人讲话 发报纸也没办法做到一人一张 下楼梯也要一阶一阶慢慢下 旁边的小男孩一开始没什么精神但后来上课了还是坐好了 画画课 他想要黑色的笔 后来想要绿色的笔 老师不允许他换 但其实他看起来也挺正常的 但是涂色他喜欢乱涂 他特别特别想要绿色的笔 他一直说他想要绿色的黑笔 其实是想要深绿色的笔 老师说三点钟才给他换 他会拍我问老师 15点了吗 我其实有时候没有习惯他在叫我老师 他知道老师们的手机都在口袋里 他会指指我的口袋要看看几点钟了 后来老师又说别的小朋友画完了所以可以换笔 他开始大力地乱画 画破洞了会拉我的手要我也摸一摸那个洞 后来他开始写字 我很惊讶 他写的是绿色 绿色的黑笔 还有 我想用蓝黑色的笔 他有些笔画很对 有些不对 我感觉他见过这个字然后记住了 色字他写了好几次 写错了他自己也知道 最后也写对了 我觉得特别特别厉害 可惜最后老师也没有给他换笔 后来开始放视频 他回答问题特别厉害 他认识各种形状 认识各种颜色 还知道什么颜色对应什么味道 粉色是草莓水蜜桃 蓝色是蓝莓 绿色是抹茶 是...[1082 bytes truncated]"
+  },
+  {
+    id: 17,
+    date: generateFixedTime1118(),
+    likes: 42,
+    content: "早就过了总是希望别人觉得自己获得什么都很轻松的年纪"
+  },
+  {
+    id: 3,
+    date: generateRandomTime1107(),
+    likes: 42,
+    content: "很迷茫啊 但是遇到了好的人们"
+  },
+  {
+    id: 2,
+    date: generateRandomTime0920(),
+    likes: 42,
+    content: "十五分钟军姿 九月中下，应是初秋，在这座城市却仍给人感觉是炎热的夏季。身处体育馆的架空层，耳边是夜晚吱吱不止的蝉鸣、后方游泳场传来手臂拍打池水的声音，以及，身边同学们此起彼伏，时重时轻的呼吸声。前面同学的迷彩帽子上，不同的颜色形成着不同的图案，我观察着观察着，思绪飘了很远……不知过了多久，膝盖后方传上来酸痛感，肩膀和手臂变得僵硬，脚部同样是阵阵的麻感，我清晰地感受到汗水正一滴一滴的从身上各处滑落，十五分钟，还没结束，十五分钟，好漫长。仔细想想，十五分钟，是我从宿舍快步走到这里的时间，是我吃一顿饭的时间，是我洗一次澡的时间，十五分钟，我还没看完一集电视……原来十五分钟，有这么久吗？感受着这个燥热的夜晚，这是我在这里的第17个夜晚，不知是一种什么样的感觉，新奇吗，疲惫吗，又或是已经习惯了呢，我不知道。我清楚地知道的是，于此，我们来日方长，在这里，我还有很多个不同的夜晚……"
+  },
+  {
+    id: 18,
+    date: generateFixedTime0912(),
+    likes: 42,
+    content: "毫不夸张地说 我已经受够了 每天十二点下课顶着大太阳背着砖头一样的课本徒步半小时爬五楼掏钥匙开门进入宿舍坐下"
+  },
+  {
+    id: 1,
+    date: generateRandomTime(),
+    likes: 42,
+    content: "就说没有那么好的日子，底线问题，不能挂科，我高中生思维了哈哈，果然不能太自信啊，又被敲醒了，收收吧，自律谦逊，好好学习，步步都不会亏，闲一点可以打更多比赛哈哈，忘了，有时长就行了！骄兵必败，收敛一点，你还没那么好"
+  }
+];
+getDynamicStarMemories();
+export {
+  addUserRecordToTrail as a,
+  getDynamicStarMemories as g
+};
