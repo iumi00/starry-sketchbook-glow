@@ -1,11 +1,8 @@
-import { defineConfig } from '@tanstack/react-start/config'
+import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
-  vite: {
-    plugins: [
-      tsconfigPaths(),
-      // 保持你原有的其他插件
-    ],
-  },
+  plugins: [
+    tsconfigPaths(),
+  ],
 })
