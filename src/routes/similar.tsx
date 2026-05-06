@@ -1,0 +1,734 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { Starfield } from "@/components/Starfield";
+import { PolarHUD } from "@/components/PolarHUD";
+import { Link } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/similar")({
+  head: () => ({ meta: [{ title: "相似留言 · 同频未署名" }] }),
+  component: Similar,
+});
+
+// Generate random star numbers for each reply
+const generateRandomStarNumber = () => `碎星#${Math.floor(Math.random() * 900) + 100}`;
+
+// Generate random time
+const generateRandomTime = () => {
+  const times = ["23 分钟前", "1 小时前", "2 小时前", "昨日", "2 日前", "3 日前"];
+  return times[Math.floor(Math.random() * times.length)];
+};
+
+// 迷茫情绪的特定留言模板
+const CONFUSION_REPLIES_TEMPLATES = [
+  {
+    text: "感觉每天过得像NPC一样，固定的生活，上课、作业、社团，事情很多但没有意义，看不到未来的方向，像个空洞的机器。",
+    tags: ["迷茫", "空虚", "意义缺失"]
+  },
+  {
+    text: "大二那年，我总觉得自己站在某个临界点上。以为21岁会突然变得成熟，可现实是，我依然在早八打瞌睡，深夜翻来覆去想未来该往哪走。",
+    tags: ["成长", "迷茫", "期待"]
+  },
+  {
+    text: "周围人都在考研考公，我只想找个工作，有自己的时间，自由一点。我是不是病了？对什么都没兴趣，以前喜欢打球跳舞，现在觉得好累好麻烦。",
+    tags: ["价值观冲突", "疲惫", "兴趣缺失"]
+  },
+  {
+    text: "很迷茫啊，但是遇到了好的人们。",
+    tags: ["迷茫", "温暖", "遇见"]
+  },
+  {
+    text: "大三下真的好累，一瞬间所有问题都涌过来，父母老师都让你早做打算，硬着头皮做选择，反复纠结和内耗。",
+    tags: ["压力", "选择困难", "内耗"]
+  }
+];
+
+// 人际困扰烦躁情绪的特定留言模板
+const INTERPERSONAL_REPLIES_TEMPLATES = [
+  {
+    text: "最近宿舍有个舍友要换宿，来了个新的我不太喜欢，太吵了，说话语气我也不喜欢。",
+    tags: ["人际困扰", "烦躁", "环境不适"]
+  },
+  {
+    text: "宿舍的床帘拉上的那一刻，才觉得这个世界跟我没关系了。能听见室友打游戏的笑声，但那些声音像隔了一层保鲜膜。",
+    tags: ["孤独", "烦躁", "逃避"]
+  },
+  {
+    text: "我想好好睡一次懒觉，但室友起得很早，只有我一个人睡觉就很难受，不敢睡太久，觉得自己好废。",
+    tags: ["烦躁", "自我否定", "睡眠困扰"]
+  }
+];
+
+// 分手失落情绪的特定留言模板
+const BREAKUP_REPLIES_TEMPLATES = [
+  {
+    text: "今天早上，我本着不想委屈自己的原则，还是正式告别了陪伴了我三年的男孩子。提前半个小时坐进了教室，哎，我才19岁，还有很多钱等着我去赚呢！",
+    tags: ["分手", "成长", "自我价值"]
+  },
+  {
+    text: "删掉他微信的那一刻，手机震了一下，像完成了一次小小的手术。没有拉黑，就是把这个置顶了三年的对话框清走了。删完倒头就睡，一觉到天亮。",
+    tags: ["分手", "解脱", "新生"]
+  },
+  {
+    text: "总有一些时刻，想到小时候和妈妈走在夜晚的街头。现在很想有一个人听我说从前，拥抱我的脆弱。轻舟终过万重山，我们都要做自己最好的朋友。",
+    tags: ["失落", "脆弱", "自我疗愈"]
+  },
+  {
+    text: "我以前觉得二十岁应该活成一把锋利的刀，现在发现自己更像一块被溪水冲刷的石头。没有活成别人期待的样子，好像也没那么可怕。",
+    tags: ["成长", "接纳", "自我和解"]
+  }
+];
+
+// 努力无果隐形天花板情绪的特定留言模板
+const EFFORT_NO_RESULT_REPLIES_TEMPLATES = [
+  {
+    text: "查完成绩我对着天花板发了十分钟呆。复习的时候我把书翻到脱胶，做题做到做梦都在列公式，甚至戒掉了奶茶防止糖分影响脑子。结果出来，比上次还低了三分。三分！我努力了这么久，就换来三分倒退？如果努力是比赛，我大概是那种拼尽全力冲向终点，然后发现终点线被往后挪了十米的选手。行吧，我已力竭！不跑了，先躺平两天再说。",
+    tags: ["努力无果", "隐形天花板", "疲惫"]
+  },
+  {
+    text: "这回期末我属于是\"感动自己式复习\"。每天七点出门，晚上十一点回宿舍，中间除了吃饭就是看书，连综艺都不敢追，怕罪恶感压死我。考完我还自信满满地对室友说\"稳了\"。成绩出来那一刻，我脸疼。原来我复习了个寂寞，就像健身两个月，上称发现重了三斤——全是水肿......",
+    tags: ["努力无果", "自我感动", "失望"]
+  },
+  {
+    text: "我妈昨天还问我\"复习得怎么样\"，我说\"放心吧\"。现在成绩出来了，我默默把聊天记录删了，怕自己看到那个\"放心吧\"觉得丢人。我真的放心了，放心地考砸了。朋友安慰我说\"尽力就好\"，可我就是觉得，我尽力了，但好像没尽对地方。就像我拼命往东跑，考试往西考。",
+    tags: ["努力无果", "家庭压力", "方向错误"]
+  },
+  {
+    text: "期末成绩出来了，比预期低了好多。不是裸考，是认认真真背了、写了、算了。就是不知道哪里出了问题。感觉像种了一季的地，最后只收了几根草。",
+    tags: ["努力无果", "困惑", "收获甚微"]
+  },
+  {
+    text: "复习了整整两周，每天泡图书馆，结果考得比上次还低。我盯着屏幕看了五分钟，确认没看错。室友问我考得怎么样，我说还行。其实我想哭。",
+    tags: ["努力无果", "孤独委屈", "强颜欢笑"]
+  },
+  {
+    text: "有的时候总觉得自己好像一事无成，但其实回头望去，好多曾经以为永远挺不过的困难，最后也平淡地度过变成了过去。我们都往前走了很远的路。所以接下来任何事都会如此，相信自己其实很有处理一些问题的能力。幸福的睡一觉，迎接新的一天。",
+    tags: ["自我和解", "成长", "希望"]
+  },
+  {
+    text: "最近经常会焦虑到吃不下饭睡不着觉，临近毕业发现自己好像一事无成。但是确实放过自己就会收获幸福！比较是偷走幸福的小偷，我们能走到现在这里已经很厉害啦。你不是一个人。",
+    tags: ["焦虑", "自我和解", "同伴支持"]
+  }
+];
+
+// 期末压力崩溃情绪的特定留言模板
+const EXAM_STRESS_REPLIES_TEMPLATES = [
+  {
+    text: "期末周真的好容易崩溃，一直不断地否定自己，感觉自己学什么都不行。",
+    tags: ["期末压力", "崩溃", "自我否定"]
+  },
+  {
+    text: "上大学好难啊，好累呢。期末周学习不进去，好想放假呀……",
+    tags: ["学业压力", "疲惫", "逃避"]
+  },
+  {
+    text: "最近经常会焦虑到吃不下饭睡不着觉，临近毕业发现自己一事无成。但是放过自己就会收获幸福，比较是偷走幸福的小偷。",
+    tags: ["焦虑", "毕业焦虑", "自我和解"]
+  },
+  {
+    text: "今天考了数学竞赛，只睡了仨小时，然后就不想学习了，跑回家附近逛了逛，补了补网络热点。",
+    tags: ["考试压力", "疲惫", "放松"]
+  },
+  {
+    text: "沉浸地一人学习让我感觉压抑，虽然我是i人，但还是偶尔喜欢与人打交道的。",
+    tags: ["学习压力", "压抑", "社交需求"]
+  }
+];
+
+// 治愈积极情绪的特定留言模板
+const POSITIVE_REPLIES_TEMPLATES = [
+  {
+    text: "今晚的星星特别多，多得对于广州来说好不真实。弯弯绕绕买到了想吃的小蛋糕，碎碎平安。希望每天都天气好，每天都有这么多星星看。",
+    tags: ["治愈", "小确幸", "积极情绪"]
+  },
+  {
+    text: "别担心，花、树、太阳、小猫会治疗你。拉开床帘看见阳光照亮宿舍，马上就起床了。低温后暖暖的晴天实在让人喜欢。",
+    tags: ["治愈", "温暖", "自然疗愈"]
+  },
+  {
+    text: "我好喜欢窗外的树，阳光明媚时，树梢轻轻摇曳，浮光变换，明亮绿色带着高光侵入视网膜，无比的心安。",
+    tags: ["治愈", "心安", "自然之美"]
+  },
+  {
+    text: "傍晚骑车经过操场，广播站放了我最喜欢的老歌。风把头发吹成直角，夕阳把影子拉得老长。生活偶尔也会塞给你几颗糖。",
+    tags: ["小确幸", "治愈", "生活美好"]
+  },
+  {
+    text: "今晚的星星好多，希望我的朋友们都不要内耗开开心心的。",
+    tags: ["治愈", "友谊", "祝福"]
+  }
+];
+
+// 自我否定低自尊情绪的特定留言模板
+const SELF_NEGATION_REPLIES_TEMPLATES = [
+  {
+    text: "呜呜呜我真的什么都做不好，没有任何特长或优点，学习也没学好，情绪像过山车，开心不会停留很久，留下的只有麻木和崩溃。",
+    tags: ["自我否定", "无力感", "低自尊"]
+  },
+  {
+    text: "小组讨论时我提了一个方案，所有人安静了三秒，组长说\"再看看别的方向\"。回宿舍反复回想自己是不是很蠢，什么都不行。",
+    tags: ["自我否定", "社交焦虑", "自我怀疑"]
+  },
+  {
+    text: "今天没有入选入党积极分子，我一直自诩能力很强，不允许失败，像永远提在弦上的箭，好累啊。",
+    tags: ["完美主义", "自我压力", "疲惫"]
+  },
+  {
+    text: "内耗的男生真的不配有爱吗？",
+    tags: ["自我否定", "情感焦虑", "内耗"]
+  }
+];
+
+// 孤独自洽情绪的特定留言模板
+const SOLITUDE_REPLIES_TEMPLATES = [
+  {
+    text: "emmm，好好生活吧，一个人也挺好的",
+    tags: ["孤独", "自洽", "平静接受"]
+  },
+  {
+    text: "今天是我一个人去的海底捞。服务员要给我放熊，我说不用。慢慢涮完，出来晚风刚好。原来一个人也可以吃火锅，不是悲壮，是舒坦。",
+    tags: ["孤独", "自洽", "独立"]
+  },
+  {
+    text: "我轻松愉快地走上大路，我健康自由，世界在我眼前。从此我不再希求好运气，我自己就是好运气。",
+    tags: ["自洽", "自由", "内在力量"]
+  },
+  {
+    text: "我开始适应最近的天气了，日子平静了，我却像留了个烙印，开始频繁记录琐碎的事。或许什么都没变，但待人如初很难。",
+    tags: ["孤独", "适应", "平静"]
+  },
+  {
+    text: "上大学一年收获了\"很多一个人的时间\"。",
+    tags: ["孤独", "成长", "独处"]
+  }
+];
+
+// 友情疏离感情绪的特定留言模板
+const FRIENDSHIP_REPLIES_TEMPLATES = [
+  {
+    text: "微信置顶的那个对话框，已经沉到第七行了。最后一条消息三天前发的，至今没有回复。以前吃到难吃的煎饼都要互骂三分钟，现在她朋友圈笑得灿烂，却不给我一个赞。",
+    tags: ["友情", "疏离感", "困惑"]
+  },
+  {
+    text: "朋友之间是不是也会有平淡期啊，感觉明明之前玩得挺好的，最近突然大家之间变得好冷淡。",
+    tags: ["友情", "疏离感", "困惑"]
+  },
+  {
+    text: "人生的课题永远只有自己能解决，没有人会一直陪我。十年的好朋友也刻意疏远我，是我自己不够好吗？",
+    tags: ["友情", "疏离感", "自我怀疑"]
+  },
+  {
+    text: "总有一些时刻，想到从前。夜晚忽然很想有一个人听我说小时候最害怕的事情，拥抱我的脆弱。",
+    tags: ["友情", "疏离感", "脆弱"]
+  }
+];
+
+// 价值观冲突情绪的特定留言模板
+const VALUE_CONFLICT_REPLIES_TEMPLATES = [
+  {
+    text: "上大学其实没什么用。我从小就喜欢画画，很后悔没走艺术这条路。如果我一生不能做喜欢的事，我觉得没意义。周围人都考研考公，我在她们中仿佛异类。",
+    tags: ["价值观冲突", "热爱与现实", "格格不入"]
+  },
+  {
+    text: "怎么办，周围的人都在考研，只有我不想。我想做点喜欢的事，找个工作，有自己的时间，自由一点。我在宿舍已经很难融入了。",
+    tags: ["价值观冲突", "热爱与现实", "格格不入"]
+  },
+  {
+    text: "这个世界真的很神奇，学好一门课程变得这么功利。我觉得掌握原理才是我未来打比赛的底气啊，到底是我颠了还是世界颠了？",
+    tags: ["价值观冲突", "热爱与现实", "格格不入"]
+  },
+  {
+    text: "感觉找到了人生目标，但是还有好多事情要做。一切的发生都有利于我，看似错误的选择会把我们推往正确的道路。",
+    tags: ["价值观冲突", "热爱与现实", "格格不入"]
+  },
+  {
+    text: "别给自己设限，除了实力一切都是浮云。没有什么能困住我，是自己总不敢往前走。尽情去闯吧，有野心、有自信、有韧性。",
+    tags: ["价值观冲突", "热爱与现实", "格格不入"]
+  }
+];
+
+// 家庭变故学业打击情绪的特定留言模板
+const FAMILY_CRISIS_REPLIES_TEMPLATES = [
+  {
+    text: "家里出了大事，同时一科成绩出来，平时分非常低挂科了。老师有一项平时分忘记给我录，申请修改被驳回，理由是他会被骂。我本来要拿奖学金的，保研留学都完了，我的人生完蛋了。",
+    tags: ["家庭变故", "学业打击", "绝望感"]
+  },
+  {
+    text: "其实还会是一想到就流眼泪的程度。亲人从知道病情到去世不超过十天。告别仪式上，\"再看最后一眼，这辈子最后一次了\"。",
+    tags: ["家庭变故", "学业打击", "绝望感"]
+  },
+  {
+    text: "大四，考研失败，找了一个月工作，好不容易进二面也搞砸了。想大哭一场，但还是笑着跟hr说没事，只有我知道很有事。",
+    tags: ["家庭变故", "学业打击", "绝望感"]
+  },
+  {
+    text: "最近经常会焦虑到吃不下饭睡不着觉。临近毕业发现自己一事无成，很难找到理想薪资的工作，无比心碎。",
+    tags: ["家庭变故", "学业打击", "绝望感"]
+  }
+];
+
+// 挫败权威伤害情绪的特定留言模板
+const FRUSTRATION_REPLIES_TEMPLATES = [
+  {
+    text: "我们的课程设计又被老师打回来重做，理由是\"格式不符合要求\"。可这格式是他自己上周改的。找他理论，他笑着说\"我讲过的呀\"。手在抖，像一拳打在棉花上。",
+    tags: ["挫败", "权威伤害", "无力反抗"]
+  },
+  {
+    text: "考研失败，二面搞砸，面试官让我先出去，我甚至忘了把椅子推回原位。灰溜溜走了。",
+    tags: ["挫败", "权威伤害", "无力反抗"]
+  },
+  {
+    text: "今天没有入选入党积极分子。我一直自诩能力很强，不允许失败，像永远提在箭上的弦，好累。",
+    tags: ["挫败", "权威伤害", "无力反抗"]
+  },
+  {
+    text: "小组讨论时我提了方案，所有人安静了三秒，然后组长说\"再看看别的方向\"。那种尴尬像针扎了一下。",
+    tags: ["挫败", "权威伤害", "无力反抗"]
+  },
+  {
+    text: "我好像总是把自己弄得很紧绷，一刻也不能放松。好累啊，真的好累。",
+    tags: ["挫败", "权威伤害", "无力反抗"]
+  }
+];
+
+// 逃离自由向往情绪的特定留言模板
+const ESCAPE_REPLIES_TEMPLATES = [
+  {
+    text: "在回广的高铁上，结束了东山岛的三天两夜。一时兴起，没人一起去就带上了妹妹，和爸妈说了一声就出来了。好累呢，昨天捡了一个下午的贝壳。",
+    tags: ["逃离", "自由向往", "治愈"]
+  },
+  {
+    text: "见到了更大的地方，就想走得更远。",
+    tags: ["逃离", "自由向往", "治愈"]
+  },
+  {
+    text: "翘掉下午的选修课，一个人坐公交去了城市边缘的湖边。没有目的，就坐在石头上看水鸟发呆。手机震动了很多次，我一条都没点开。那两个小时，我不属于任何人。",
+    tags: ["逃离", "自由向往", "治愈"]
+  },
+  {
+    text: "别担心，花、树、太阳、小猫会治疗你。今天是晴天，拉开床帘看见阳光，马上就起床了。",
+    tags: ["逃离", "自由向往", "治愈"]
+  },
+  {
+    text: "今晚的星星特别多，多得对于广州来说好不真实。天气好就心情好，希望每天都天气好。",
+    tags: ["逃离", "自由向往", "治愈"]
+  }
+];
+
+// 自我成长内在力量情绪的特定留言模板
+const GROWTH_REPLIES_TEMPLATES = [
+  {
+    text: "在无数个不为人知的时刻，我细数着那些破碎的时刻。直到某一天，可以信手拈来，平静地回看它们。我已经感觉到自己变得强大，有时候理智得可怕，但我喜欢我自己。",
+    tags: ["自我成长", "和解", "内在力量"]
+  },
+  {
+    text: "大二那年，我总觉得自己站在临界点上。现在的我依然会为未来焦虑，但也开始学着珍惜这种\"未完成\"的状态。",
+    tags: ["自我成长", "和解", "内在力量"]
+  },
+  {
+    text: "我轻松愉快地走上大路，我健康自由。从此我不再希求好运气，我自己就是好运气。",
+    tags: ["自我成长", "和解", "内在力量"]
+  },
+  {
+    text: "轻舟终过万重山，我们都要做自己最好的朋友。",
+    tags: ["自我成长", "和解", "内在力量"]
+  },
+  {
+    text: "感觉找到了人生目标，一切的发生都有利于我。看似错误的选择会把我们推往正确的道路。",
+    tags: ["自我成长", "和解", "内在力量"]
+  }
+];
+
+// 野心动力搞钱情绪的特定留言模板
+const AMBITION_REPLIES_TEMPLATES = [
+  {
+    text: "哎，我才19岁，还有很多钱等着我去赚呢！",
+    tags: ["野心", "动力", "搞钱"]
+  },
+  {
+    text: "见到了更大的地方，就想走得更远。我要做那个拼拼图的人，不是团队的一小块拼图。",
+    tags: ["野心", "动力", "搞钱"]
+  },
+  {
+    text: "投了二十八份简历，终于收到一个面试通知。那一刻我从椅子上跳了起来。可能还是会失败，但万一呢？万一运气就轮到我了？",
+    tags: ["野心", "动力", "搞钱"]
+  },
+  {
+    text: "我现在要做的就是学好专业课，一边准备简历。软硬兼备，综合能力我也有。沉淀，学习，准备，向那个方向出发。",
+    tags: ["野心", "动力", "搞钱"]
+  },
+  {
+    text: "除了实力一切都是浮云，没有什么能困住我。有野心、有自信、有韧性。",
+    tags: ["野心", "动力", "搞钱"]
+  }
+];
+
+// 怀旧回忆情绪的特定留言模板
+const NOSTALGIA_REPLIES_TEMPLATES = [
+  {
+    text: "总有一些时刻，想到十几年前，和妈妈走在夜晚的街头，楼与楼之间黑黑的小道。夜晚忽然很想有一个人听我说从前，拥抱我的脆弱。",
+    tags: ["怀旧", "回忆", "从前"]
+  },
+  {
+    text: "凌晨三点和好朋友挤在一张小床上，分一包薯片，聊着不着边际的梦想。真正照亮自己的，竟是那些被我们当作\"寻常\"的瞬间。",
+    tags: ["怀旧", "回忆", "从前"]
+  },
+  {
+    text: "昨晚收拾柜子翻出高中的校服，袖子上还沾着蓝色墨水。试着套了一下，肩膀紧了。不是衣服缩水，是我长大了。",
+    tags: ["怀旧", "回忆", "从前"]
+  },
+  {
+    text: "夏天的声音，是蝉鸣、耳机里的音乐、雷雨声。大学后镜头从\"我们\"变成了\"我\"和\"别人\"。我们一定会在高处相见。",
+    tags: ["怀旧", "回忆", "从前"]
+  },
+  {
+    text: "我开始适应最近的天气了，日子平静了，我却像留了个烙印。频繁记录琐碎的事，或许是害怕痛苦蔓延。",
+    tags: ["怀旧", "回忆", "从前"]
+  }
+];
+
+// 默认留言（空数组，如果没有匹配到特定留言则显示0张卡片）
+const DEFAULT_REPLIES: any[] = [];
+
+function Similar() {
+  // 从localStorage加载同频状态
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(() => {
+    const savedLikes = localStorage.getItem("similarLikedPosts");
+    if (savedLikes) {
+      return new Set(JSON.parse(savedLikes));
+    }
+    return new Set();
+  });
+  
+  // 检测用户输入的内容并选择相应的留言
+  const [replies, setReplies] = useState(DEFAULT_REPLIES);
+  
+  useEffect(() => {
+    // 从sessionStorage获取用户输入的内容
+    const userInput = sessionStorage.getItem("carveUserInput");
+    console.log("用户输入内容:", userInput); // 调试信息
+    
+    if (userInput) {
+      // 检测是否包含努力无果隐形天花板相关的关键词（最高优先级）
+      const effortNoResultKeywords = ['期末成绩', '复习了整整一个月', '每天泡图书馆', '笔记记了三本', '真题刷了两遍', '分数比那些只复习了一周的人还低', '不是没努力', '真的使不上劲', '透明的墙', '能看见对面', '怎么都穿不过去', '不想发朋友圈', '怕我妈打电话来', '不敢跟室友说', '她们都考得还行', '一开口就像在找借口', '一个人坐在食堂角落', '饭凉了也不想吃', '心里堵着一团东西', '吐不出来也咽不下去', '觉得很委屈', '委屈自己明明那么用力了', '一点用都没有', '我好累'];
+      const hasEffortNoResultKeywords = effortNoResultKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含努力无果隐形天花板关键词:", hasEffortNoResultKeywords); // 调试信息
+      
+      // 检测是否包含迷茫相关的关键词
+      const confusionKeywords = ['迷茫', '不知道', '以后', '干嘛', '方向', '未来', '焦虑', '选择', '路', '怎么办'];
+      const hasConfusionKeywords = confusionKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含迷茫关键词:", hasConfusionKeywords); // 调试信息
+      
+      // 检测是否包含人际困扰烦躁相关的关键词
+      const interpersonalKeywords = ['室友', '吵', '烦', '烦躁', '困扰', '环境', '不适', '噪音', '影响', '安静'];
+      const hasInterpersonalKeywords = interpersonalKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含人际困扰关键词:", hasInterpersonalKeywords); // 调试信息
+      
+      // 检测是否包含分手失落相关的关键词
+      const breakupKeywords = ['分手', '失恋', '分开', '结束', '空空的', '空虚', '失落', '难过', '心痛', '舍不得'];
+      const hasBreakupKeywords = breakupKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含分手失落关键词:", hasBreakupKeywords); // 调试信息
+      
+      // 检测是否包含期末压力崩溃相关的关键词
+      const examStressKeywords = ['期末', '期末周', '崩溃', '压力', '考试', '复习', '挂科', '焦虑', '自我否定', '撑不住', '学不动'];
+      const hasExamStressKeywords = examStressKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含期末压力崩溃关键词:", hasExamStressKeywords); // 调试信息
+      
+      // 检测是否包含治愈积极情绪相关的关键词
+      const positiveKeywords = ['天气很好', '心情不错', '开心', '高兴', '快乐', '治愈', '美好', '阳光', '温暖', '幸福', '愉快', '舒服'];
+      const hasPositiveKeywords = positiveKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含治愈积极情绪关键词:", hasPositiveKeywords); // 调试信息
+      
+      // 检测是否包含自我否定低自尊相关的关键词
+      const selfNegationKeywords = ['什么都做不好', '自我否定', '无力感', '低自尊', '没用', '废物', '失败', '做不好', '不行', '做不到', '很差', '糟糕'];
+      const hasSelfNegationKeywords = selfNegationKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含自我否定低自尊关键词:", hasSelfNegationKeywords); // 调试信息
+      
+      // 检测是否包含孤独自洽相关的关键词
+      const solitudeKeywords = ['一个人', '也挺好', '孤独', '自洽', '平静接受', '独处', '安静', '自在', '享受', '一个人也挺好的'];
+      const hasSolitudeKeywords = solitudeKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含孤独自洽关键词:", hasSolitudeKeywords); // 调试信息
+      
+      // 检测是否包含友情疏离感相关的关键词
+      const friendshipKeywords = ['朋友', '疏远', '友情', '疏离感', '困惑', '远离', '冷淡', '不联系', '陌生', '距离', '变了', '好像'];
+      const hasFriendshipKeywords = friendshipKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含友情疏离感关键词:", hasFriendshipKeywords); // 调试信息
+      
+      // 检测是否包含价值观冲突相关的关键词
+      const valueConflictKeywords = ['不想考研', '想做喜欢的事', '价值观冲突', '热爱与现实', '格格不入', '不想', '喜欢的事', '现实', '理想', '追求', '放弃'];
+      const hasValueConflictKeywords = valueConflictKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含价值观冲突关键词:", hasValueConflictKeywords); // 调试信息
+      
+      // 检测是否包含家庭变故学业打击相关的关键词
+      const familyCrisisKeywords = ['家里出事', '学业也挂了', '家庭变故', '学业打击', '绝望感', '挂科', '家里', '出事', '失败', '完蛋了', '亲人', '去世', '工作', '找不到'];
+      const hasFamilyCrisisKeywords = familyCrisisKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含家庭变故学业打击关键词:", hasFamilyCrisisKeywords); // 调试信息
+      
+      // 检测是否包含挫败权威伤害相关的关键词
+      const frustrationKeywords = ['被老师否定', '很难受', '挫败', '权威伤害', '无力反抗', '否定', '打击', '失败', '搞砸', '拒绝', '批评', '不公平'];
+      const hasFrustrationKeywords = frustrationKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含挫败权威伤害关键词:", hasFrustrationKeywords); // 调试信息
+      
+      // 检测是否包含逃离自由向往相关的关键词
+      const escapeKeywords = ['想出去旅行', '散散心', '逃离', '自由向往', '治愈', '旅行', '出去', '散心', '放松', '远方', '自由', '治愈'];
+      const hasEscapeKeywords = escapeKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含逃离自由向往关键词:", hasEscapeKeywords); // 调试信息
+      
+      // 检测是否包含自我成长内在力量相关的关键词
+      const growthKeywords = ['感觉自己变强大了', '自我成长', '和解', '内在力量', '变强大', '成长', '强大', '内在', '力量', '和解', '目标'];
+      const hasGrowthKeywords = growthKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含自我成长内在力量关键词:", hasGrowthKeywords); // 调试信息
+      
+      // 检测是否包含野心动力搞钱相关的关键词
+      const ambitionKeywords = ['想赚钱', '搞钱', '野心', '动力', '赚钱', '搞钱', '钱', '赚钱', '事业', '成功', '目标', '奋斗'];
+      const hasAmbitionKeywords = ambitionKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含野心动力搞钱关键词:", hasAmbitionKeywords); // 调试信息
+      
+      // 检测是否包含怀旧回忆相关的关键词
+      const nostalgiaKeywords = ['深夜睡不着', '想从前', '怀旧', '回忆', '从前', '小时候', '过去', '曾经', '回忆', '想念', '从前', '深夜'];
+      const hasNostalgiaKeywords = nostalgiaKeywords.some(keyword => userInput.includes(keyword));
+      console.log("是否包含怀旧回忆关键词:", hasNostalgiaKeywords); // 调试信息
+      
+      if (hasEffortNoResultKeywords) {
+        // 为努力无果隐形天花板情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const effortNoResultReplies = EFFORT_NO_RESULT_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置努力无果隐形天花板留言:", effortNoResultReplies); // 调试信息
+        setReplies(effortNoResultReplies);
+      } else if (hasConfusionKeywords) {
+        // 为迷茫情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const confusionReplies = CONFUSION_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置迷茫留言:", confusionReplies); // 调试信息
+        setReplies(confusionReplies);
+      } else if (hasBreakupKeywords) {
+        // 为分手失落情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const breakupReplies = BREAKUP_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置分手失落留言:", breakupReplies); // 调试信息
+        setReplies(breakupReplies);
+      } else if (hasExamStressKeywords) {
+        // 为期末压力崩溃情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const examStressReplies = EXAM_STRESS_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置期末压力崩溃留言:", examStressReplies); // 调试信息
+        setReplies(examStressReplies);
+      } else if (hasPositiveKeywords) {
+        // 为治愈积极情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const positiveReplies = POSITIVE_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置治愈积极情绪留言:", positiveReplies); // 调试信息
+        setReplies(positiveReplies);
+      } else if (hasSelfNegationKeywords) {
+        // 为自我否定低自尊情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const selfNegationReplies = SELF_NEGATION_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置自我否定低自尊留言:", selfNegationReplies); // 调试信息
+        setReplies(selfNegationReplies);
+      } else if (hasSolitudeKeywords) {
+        // 为孤独自洽情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const solitudeReplies = SOLITUDE_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置孤独自洽留言:", solitudeReplies); // 调试信息
+        setReplies(solitudeReplies);
+      } else if (hasFriendshipKeywords) {
+        // 为友情疏离感情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const friendshipReplies = FRIENDSHIP_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置友情疏离感留言:", friendshipReplies); // 调试信息
+        setReplies(friendshipReplies);
+      } else if (hasValueConflictKeywords) {
+        // 为价值观冲突情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const valueConflictReplies = VALUE_CONFLICT_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置价值观冲突留言:", valueConflictReplies); // 调试信息
+        setReplies(valueConflictReplies);
+      } else if (hasFamilyCrisisKeywords) {
+        // 为家庭变故学业打击情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const familyCrisisReplies = FAMILY_CRISIS_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置家庭变故学业打击留言:", familyCrisisReplies); // 调试信息
+        setReplies(familyCrisisReplies);
+      } else if (hasFrustrationKeywords) {
+        // 为挫败权威伤害情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const frustrationReplies = FRUSTRATION_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置挫败权威伤害留言:", frustrationReplies); // 调试信息
+        setReplies(frustrationReplies);
+      } else if (hasEscapeKeywords) {
+        // 为逃离自由向往情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const escapeReplies = ESCAPE_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置逃离自由向往留言:", escapeReplies); // 调试信息
+        setReplies(escapeReplies);
+      } else if (hasGrowthKeywords) {
+        // 为自我成长内在力量情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const growthReplies = GROWTH_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置自我成长内在力量留言:", growthReplies); // 调试信息
+        setReplies(growthReplies);
+      } else if (hasAmbitionKeywords) {
+        // 为野心动力搞钱情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const ambitionReplies = AMBITION_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置野心动力搞钱留言:", ambitionReplies); // 调试信息
+        setReplies(ambitionReplies);
+      } else if (hasNostalgiaKeywords) {
+        // 为怀旧回忆情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const nostalgiaReplies = NOSTALGIA_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置怀旧回忆留言:", nostalgiaReplies); // 调试信息
+        setReplies(nostalgiaReplies);
+      } else if (hasInterpersonalKeywords) {
+        // 为人际困扰烦躁情绪生成特定的留言，每次刷新都重新生成随机编号和时间
+        const interpersonalReplies = INTERPERSONAL_REPLIES_TEMPLATES.map((reply: any) => ({
+          ...reply,
+          from: generateRandomStarNumber(),
+          when: generateRandomTime()
+        }));
+        console.log("设置人际困扰留言:", interpersonalReplies); // 调试信息
+        setReplies(interpersonalReplies);
+      } else {
+        console.log("设置默认留言"); // 调试信息
+        setReplies(DEFAULT_REPLIES);
+      }
+    } else {
+      console.log("没有用户输入，设置默认留言"); // 调试信息
+      setReplies(DEFAULT_REPLIES);
+    }
+  }, []);
+  
+  // 存储卡片数量到sessionStorage，供刻录页面使用
+  useEffect(() => {
+    const cardCount = String(replies.length);
+    sessionStorage.setItem("similarCardCount", cardCount);
+    console.log("更新similarCardCount:", cardCount, "当前留言数量:", replies.length); // 调试信息
+  }, [replies]);
+  
+  // 保存同频状态到localStorage
+  useEffect(() => {
+    localStorage.setItem("similarLikedPosts", JSON.stringify(Array.from(likedPosts)));
+  }, [likedPosts]);
+
+  return (
+    <div className="relative flex flex-col min-h-screen w-full overflow-hidden bg-background grain">
+      <Starfield count={70} />
+      <PolarHUD />
+
+      {/* 顶部返回箭头 */}
+      <div className="absolute top-[60px] left-4 z-30">
+        <Link
+          to="/"
+          className="text-lg leading-none text-foreground/80 hover:text-foreground transition-colors"
+          aria-label="返回主场景"
+        >
+          ←
+        </Link>
+      </div>
+
+      {/* 内容 */}
+      <main className="relative z-10 flex-grow px-5 pb-20 pt-24">
+        <div className="mx-auto max-w-md space-y-5">
+          {replies.map((r: any, i: number) => (
+            <article
+              key={i}
+              className="border border-white/10 bg-white/5 backdrop-blur-md p-5 rounded-lg animate-fade-up"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            >
+              <div className="flex items-center justify-between text-[10px] tracking-[0.25em] text-white">
+                <span>{r.from}</span>
+                <span>{r.when}</span>
+              </div>
+              <p className="mt-4 text-[15px] leading-[1.9] text-white font-cn">
+                {r.text}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {r.tags.map((tag: any, index: number) => (
+                  <span
+                    key={index}
+                    className="border border-white/10 bg-white/5 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white/70"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-5 pt-3 border-t border-border/50 flex items-center justify-between text-[11px] tracking-[0.25em]">
+                <button
+                  onClick={() => {
+                    const newLikedPosts = new Set(likedPosts);
+                    if (newLikedPosts.has(i)) {
+                      newLikedPosts.delete(i);
+                    } else {
+                      newLikedPosts.add(i);
+                    }
+                    setLikedPosts(newLikedPosts);
+                  }}
+                  className="text-white hover:text-white/80 transition-colors"
+                >
+                  同频{likedPosts.has(i) ? "❤️" : "🤍"}
+                </button>
+                <Link
+                  to="/message"
+                  search={{
+                    star: r.from,
+                    content: r.text,
+                    tags: "",
+                    from: "similar",
+                    liked: undefined
+                  }}
+                  className="text-white hover:text-white/80 transition-colors"
+                >
+                  留言→
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}

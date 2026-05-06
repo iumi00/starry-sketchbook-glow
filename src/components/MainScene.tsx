@@ -1,14 +1,15 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Starfield } from "@/components/Starfield";
 import { Penguin } from "@/components/Penguin";
 import { PolarHUD } from "@/components/PolarHUD";
 
 const ENTRIES = [
-  { to: "/carve",   label: "刻录",   hint: "写下此刻" },
-  { to: "/glimmer", label: "拾光",   hint: "看别人的" },
-  { to: "/echo",    label: "回声",   hint: "消息中心" },
-  { to: "/trail",   label: "星轨",   hint: "我的档案" },
-  { to: "/keeper",  label: "守夜人", hint: "AI 陪伴" },
+  { to: "/carve", label: "刻录", hint: "写下此刻" },
+  { to: "/shiguang", label: "拾光", hint: "看别人的" },
+  { to: "/echo", label: "回声", hint: "消息中心" },
+  { to: "/trail", label: "星轨", hint: "我的档案" },
+  { to: "/keeper", label: "守夜人", hint: "AI 陪伴" },
 ] as const;
 
 /**
@@ -17,6 +18,54 @@ const ENTRIES = [
  * - 下半部分：地球弧线（南极冰原边缘），企鹅站在弧线上仰望
  */
 export function MainScene() {
+  const [hasNewEcho, setHasNewEcho] = useState(false);
+
+  // 检测是否有新的回声卡片
+  useEffect(() => {
+    const checkNewEcho = () => {
+      const userEchoes = localStorage.getItem('userEchoes');
+      const lastViewedEcho = localStorage.getItem('lastViewedEcho');
+      
+      if (userEchoes) {
+        try {
+          const echoList = JSON.parse(userEchoes);
+          const hasUnviewed = echoList.length > 0 && (!lastViewedEcho || 
+            echoList[0].publishTime > parseInt(lastViewedEcho));
+          setHasNewEcho(hasUnviewed);
+        } catch (error) {
+          console.error('解析用户回声失败:', error);
+          setHasNewEcho(false);
+        }
+      } else {
+        setHasNewEcho(false);
+      }
+    };
+
+    // 初始检查
+    checkNewEcho();
+    
+    // 定期检查（每5秒检查一次）
+    const interval = setInterval(checkNewEcho, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // 点击回声时清除新消息标记
+  const handleEchoClick = () => {
+    const userEchoes = localStorage.getItem('userEchoes');
+    if (userEchoes) {
+      try {
+        const echoList = JSON.parse(userEchoes);
+        if (echoList.length > 0) {
+          localStorage.setItem('lastViewedEcho', echoList[0].publishTime.toString());
+        }
+      } catch (error) {
+        console.error('解析用户回声失败:', error);
+      }
+    }
+    setHasNewEcho(false);
+  };
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background grain">
       <Starfield count={120} />
@@ -31,23 +80,32 @@ export function MainScene() {
 
       {/* 入口列表 — 顶部 HUD 与地平线之间居中（约 28%~30%） */}
       <nav className="absolute left-0 right-0 top-[30%] flex flex-col items-center gap-5 z-20">
-        {ENTRIES.map((e, i) => (
-          <Link
-            key={e.to}
-            to={e.to}
-            className="group select-none flex flex-col items-center"
-            style={{
-              animation: `fade-up 0.7s ease-out ${0.15 + i * 0.1}s both`,
-            }}
-          >
-            <span className="text-base tracking-[0.35em] text-foreground/90 font-cn group-hover:text-aurora transition-colors">
-              【{e.label}】
-            </span>
-            <span className="mt-0.5 text-[10px] tracking-[0.25em] text-muted-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity font-hand">
-              {e.hint}
-            </span>
-          </Link>
-        ))}
+        {ENTRIES.map((e, i) => {
+          const isEcho = e.to === "/echo";
+          return (
+            <Link
+              key={e.to}
+              to={e.to}
+              onClick={isEcho ? handleEchoClick : undefined}
+              className="group select-none flex flex-col items-center relative"
+              style={{
+                animation: `fade-up 0.7s ease-out ${0.15 + i * 0.1}s both`,
+              }}
+            >
+              {/* 绿色小圆点 - 仅在回声选项且有新消息时显示 */}
+              {isEcho && hasNewEcho && (
+                <span className="absolute -top-1 -right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              )}
+              
+              <span className="text-base tracking-[0.35em] text-foreground/90 font-cn group-hover:text-aurora transition-colors">
+                【{e.label}】
+              </span>
+              <span className="mt-0.5 text-[10px] tracking-[0.25em] text-muted-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity font-hand">
+                {e.hint}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* 地平线 + 企鹅 — 放在下方 */}
@@ -56,7 +114,7 @@ export function MainScene() {
         {/* 企鹅固定站在弧顶上 */}
         <div
           className="absolute left-1/2 -translate-x-1/2 z-10"
-          style={{ bottom: "calc(32% + 36px)" }}
+          style={{ bottom: "calc(45% - 0.954px)" }}
         >
           <Penguin size={38} />
         </div>

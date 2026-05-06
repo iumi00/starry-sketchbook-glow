@@ -1,12 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Starfield } from "@/components/Starfield";
-import { PolarHUD } from "@/components/PolarHUD";
+import { PageShell } from "@/components/PageShell";
+import { Send } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/glimmer")({
+export const Route = createFileRoute("/shiguang")({
   head: () => ({ meta: [{ title: "拾光 · 同频未署名" }] }),
-  component: Glimmer,
+  component: Shiguang,
+  validateSearch: (search: Record<string, unknown>) => ({
+    stage: search.stage as string || "seeking",
+    starNumber: search.starNumber as string || undefined,
+    message: search.message as string || undefined,
+    liked: search.liked as string || undefined,
+  }),
 });
 
 // 模拟留言数据 - 内容和标签绑定
@@ -129,41 +135,114 @@ const MESSAGE_DATA = [
   }
 ];
 
-function Glimmer() {
-  const [stage, setStage] = useState<"seeking" | "touching" | "blooming">("seeking");
-  const [selectedData, setSelectedData] = useState(() => MESSAGE_DATA[Math.floor(Math.random() * MESSAGE_DATA.length)]);
-  const [message] = useState(() => selectedData.content);
-  const [showMessage, setShowMessage] = useState(false);
+
+function Shiguang() {
+  const { stage: initialStage, starNumber: initialStarNumber, message: initialMessage, liked: initialLiked } = Route.useSearch();
+  
+  const [stage, setStage] = useState<"seeking" | "touching" | "blooming">(initialStage as any || "seeking");
+  const [selectedData, setSelectedData] = useState(() => {
+    if (initialMessage) {
+      const foundIndex = MESSAGE_DATA.findIndex(item => item.content === initialMessage);
+      return foundIndex >= 0 ? MESSAGE_DATA[foundIndex] : MESSAGE_DATA[0];
+    }
+    return MESSAGE_DATA[Math.floor(Math.random() * MESSAGE_DATA.length)];
+  });
+  
+  const [message, setMessage] = useState(() => selectedData.content);
+  const [showMessage, setShowMessage] = useState(initialStage === "blooming");
   const [typewriterText, setTypewriterText] = useState("");
+  const [showStar, setShowStar] = useState(initialStage === "blooming");
+  const [showArrow, setShowArrow] = useState(initialStage === "blooming");
+  const [isLiked, setIsLiked] = useState(() => {
+    // 从路由参数读取同频状态，确保正确转换
+    if (initialLiked === "true") return true;
+    if (initialLiked === "false") return false;
+    return false; // 默认状态
+  });
+  const [successText, setSuccessText] = useState(""); // 成功文字状态
+  
+  // 生成随机碎星编号和时间
+  const [starNumber, setStarNumber] = useState(() => initialStarNumber ? parseInt(initialStarNumber) : Math.floor(Math.random() * 1000));
+  const [minutesAgo, setMinutesAgo] = useState(() => Math.floor(Math.random() * 60) + 1); // 1-60分钟前
+  const [tags, setTags] = useState(() => selectedData.tags);
+
+  // 获取路由函数
+  const router = useRouter();
+  
+  // 按钮点击处理函数
+  const handleLikeToggle = () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    
+    // 更新路由参数以持久化同频状态
+    router.navigate({
+      to: "/shiguang",
+      search: {
+        stage: stage,
+        starNumber: starNumber.toString(),
+        message: message,
+        liked: newLikedState.toString()
+      }
+    });
+  };
+
+  const handleReCatch = () => {
+    // 重新生成新的卡片数据
+    const newData = MESSAGE_DATA[Math.floor(Math.random() * MESSAGE_DATA.length)];
+    const newStarNumber = Math.floor(Math.random() * 1000);
+    const newMinutesAgo = Math.floor(Math.random() * 60) + 1;
+    
+    setSelectedData(newData);
+    setMessage(newData.content);
+    // 更新标签状态
+    setTags(newData.tags);
+    
+    // 重置所有状态回到seeking阶段（但不清空typewriterText，让动画正常播放）
+    setStage("seeking");
+    setShowMessage(false);
+    setShowStar(false);
+    setShowArrow(false);
+    setIsLiked(false); // 重置爱心状态
+    setSuccessText("");
+    
+    // 重新生成碎星序号和时间
+    setStarNumber(newStarNumber);
+    setMinutesAgo(newMinutesAgo);
+    
+    // 更新URL参数，移除liked状态让新卡片重新开始
+    router.navigate({
+      to: "/shiguang",
+      search: {
+        stage: "seeking",
+        starNumber: newStarNumber.toString(),
+        message: newData.content,
+        liked: "false" // 重置liked状态
+      }
+    });
+  };
+
+  
+    
+  // 动画控制状态
+  const [showHeaderInfo, setShowHeaderInfo] = useState(initialStage === "blooming");
+  const [visibleTags, setVisibleTags] = useState<number[]>(initialStage === "blooming" ? [0, 1, 2] : []);
+  const [displayMessage, setDisplayMessage] = useState(initialStage === "blooming" ? message : "");
 
   useEffect(() => {
-    if (stage === "seeking") {
-      // 阶段1: 寻星 (0-1.5秒)
+    if (stage === "seeking" && initialStage !== "blooming") {
+      // 阶段1: 寻星 (0-5秒)
       const timer1 = setTimeout(() => {
         setStage("touching");
-      }, 1500);
-
-      // 阶段2: 触碰 (1.5-2.5秒)
-      const timer2 = setTimeout(() => {
-        setStage("blooming");
-      }, 2500);
-
-      // 阶段3: 绽放 (2.5秒后)
-      const timer3 = setTimeout(() => {
-        setShowMessage(true);
-      }, 2500);
-
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-        clearTimeout(timer3);
-      };
+      }, 5000);
+      return () => clearTimeout(timer1);
     }
-  }, [stage]);
+  }, [stage, initialStage]);
 
   // 打字机效果
   useEffect(() => {
     if (stage === "seeking") {
+      // 重置打字机文本
+      setTypewriterText("");
       const text = "正在为你捕获一颗遥远的星...";
       let index = 0;
       const timer = setInterval(() => {
@@ -173,42 +252,63 @@ function Glimmer() {
         } else {
           clearInterval(timer);
         }
-      }, 100);
+      }, 250);
+      return () => clearInterval(timer);
+    }
+  }, [stage]);
+
+  // 捕获成功文字打字机效果
+  useEffect(() => {
+    if (stage === "touching") {
+      setSuccessText("");
+      setShowStar(false);
+      setShowArrow(false);
+      
+      const text = "捕获成功。";
+      let index = 0;
+      const timer = setInterval(() => {
+        if (index < text.length) {
+          setSuccessText(text.substring(0, index + 1));
+          index++;
+        } else {
+          clearInterval(timer);
+          // 文字显示完毕后显示星星
+          setTimeout(() => {
+            setShowStar(true);
+            // 脉冲动画完成后显示箭头
+            setTimeout(() => {
+              setShowArrow(true);
+            }, 2000); // 2秒脉冲动画
+          }, 500);
+        }
+      }, 200); // 成功文字稍快一些
       return () => clearInterval(timer);
     }
   }, [stage]);
 
   return (
-    <div className="relative flex flex-col min-h-screen w-full overflow-hidden bg-background grain">
-      <Starfield count={120} />
-      <PolarHUD />
-
-      {/* 顶部返回箭头 */}
-      <div className="absolute top-[60px] left-4 z-30">
-        <Link
-          to="/"
-          className="text-lg leading-none text-foreground/80 hover:text-foreground transition-colors"
-          aria-label="返回主场景"
-        >
-          ←
-        </Link>
-      </div>
-
-      {/* 阶段1: 寻星 - 星星下落 */}
+    <PageShell title="拾光" subtitle="看看来自其他碎星的记录">
+      {/* 阶段1: 寻星 - 流星雨 */}
       {stage === "seeking" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-          {/* 发光的星星 */}
-          <div
-            className="relative w-4 h-4 bg-white rounded-full shadow-lg"
-            style={{
-              boxShadow: "0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.6), 0 0 60px rgba(255,255,255,0.4)",
-              animation: "fall 1.5s ease-out forwards",
-            }}
-          />
+        <div className="absolute inset-0 z-20 transition-opacity duration-1000 ease-in-out">
+          {/* 多条流星 */}
+          {[...Array(3)].map((_, i) => (
+            <span
+              key={i}
+              aria-hidden
+              className="pointer-events-none absolute w-24 h-[1px] bg-gradient-to-r from-transparent via-white to-transparent"
+              style={{
+                top: "0",
+                left: "0",
+                animation: "meteor-short 3s linear",
+                animationDelay: `${i * 1.5}s`,
+              }}
+            />
+          ))}
           
           {/* 打字机文字 */}
-          <div className="mt-12 text-center">
-            <p className="text-sm tracking-wider text-white/60 font-cn">
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 text-center">
+            <p className="text-lg tracking-[0.3em] text-white/80 font-cn">
               {typewriterText}
               <span className="animate-pulse">|</span>
             </p>
@@ -218,58 +318,186 @@ function Glimmer() {
 
       {/* 阶段2: 触碰 - 脉冲和涟漪效果 */}
       {stage === "touching" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-          {/* 呼吸脉冲的星星 */}
-          <div
-            className="w-4 h-4 bg-white rounded-full"
-            style={{
-              boxShadow: "0 0 30px rgba(255,255,255,0.8)",
-              animation: "pulse 1s ease-in-out",
-            }}
-          />
-          
-          {/* 涟漪效果 */}
-          <div
-            className="absolute border border-white/20 rounded-full"
-            style={{
-              width: "100px",
-              height: "100px",
-              animation: "ripple 1.5s ease-out forwards",
-            }}
-          />
-          
-          {/* 提示文字 */}
-          <div className="absolute top-1/3 text-center">
-            <p className="text-lg tracking-wider text-white/80 font-cn">
-              捕获成功。
+        <div className="absolute inset-0 z-20 transition-opacity duration-1000 ease-in-out">
+          {/* 提示文字 - 打字机效果 */}
+          <div className="absolute top-1/5 left-1/2 -translate-x-1/2 text-center">
+            <p className="text-lg tracking-[0.3em] text-white/80 font-cn">
+              {successText}
+              <span className="animate-pulse">|</span>
             </p>
           </div>
+
+          {/* 呼吸脉冲的星星 */}
+          {showStar && (
+            <div
+              className="absolute w-4 h-4 bg-white rounded-full cursor-pointer hover:scale-110 transition-transform"
+              style={{
+                left: "50%",
+                top: "calc(20% + 140px)",
+                transform: "translateX(-50%)",
+                boxShadow: "0 0 30px rgba(255,255,255,0.8)",
+                animation: "pulse 2s ease-in-out",
+              }}
+              onClick={() => {
+                setStage("blooming");
+                // Step 1: 显示碎星和时间 (1s后)
+                setTimeout(() => setShowHeaderInfo(true), 1000);
+                // Step 2: 逐个显示标签 (每个标签间隔1s)
+                setTimeout(() => {
+                  tags.forEach((_, index) => {
+                    setTimeout(() => {
+                      setVisibleTags(prev => [...prev, index]);
+                    }, index * 1000);
+                  });
+                }, 2000);
+                // Step 3: 打字机显示消息内容 (所有标签显示完后)
+                setTimeout(() => {
+                  setDisplayMessage(message);
+                }, 2000 + (tags.length * 1000));
+              }}
+            />
+          )}
+          
+          {/* 涟漪效果 */}
+          {showStar && (
+            <div
+              className="absolute border border-white/20 rounded-full pointer-events-none"
+              style={{
+                left: "50%",
+                top: "calc(20% + 140px)",
+                width: "100px",
+                height: "100px",
+                transform: "translate(-50%, -50%)",
+                animation: "ripple 2s ease-out forwards",
+              }}
+            />
+          )}
+
+          {/* 浮动箭头 - 指向星星 */}
+          {showArrow && (
+            <div
+              className="absolute left-1/2 -translate-x-1/2 text-white text-2xl"
+              style={{
+                top: "calc(20% + 100px)",
+                animation: "float 2s ease-in-out infinite",
+              }}
+            >
+              ↓
+            </div>
+          )}
         </div>
       )}
 
       {/* 阶段3: 绽放 - 星星展开成卡片 */}
       {stage === "blooming" && (
-        <div className="absolute inset-0 flex items-center justify-center z-20">
+        <div className="absolute inset-0 z-20 transition-opacity duration-1000 ease-in-out">
           <div
-            className="w-80 max-w-[90vw] bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6"
+            className="absolute w-80 max-w-[90vw] bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6"
             style={{
-              animation: "expand 0.5s ease-out forwards",
+              left: "50%",
+              top: "calc(20% + 70px)",
+              transform: "translate(-50%, -50%)",
+              animation: "expand 1s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+              maxHeight: "400px", // 设置最大高度
+              minHeight: "auto",   // 最小高度自适应
             }}
           >
-            {/* 留言内容 */}
-            {showMessage && (
-              <p
-                className="text-[15px] leading-relaxed text-white font-cn"
-                style={{
-                  animation: "fadeIn 1s ease-in forwards",
-                }}
-              >
-                {message}
-              </p>
+            {/* 左上角碎星编号 */}
+            <div 
+              className="absolute top-4 left-4 text-white/60 font-cn text-sm"
+              style={{
+                opacity: showHeaderInfo ? 1 : 0,
+                transition: "opacity 1s ease-in",
+              }}
+            >
+              碎星#{starNumber}
+            </div>
+            
+            {/* 右上角时间 */}
+            <div 
+              className="absolute top-4 right-4 text-white/60 font-cn text-sm"
+              style={{
+                opacity: showHeaderInfo ? 1 : 0,
+                transition: "opacity 1s ease-in",
+              }}
+            >
+              {minutesAgo}分钟前
+            </div>
+            
+            {/* 留言内容 - 可滚动 */}
+            <div 
+              className="mt-8 overflow-y-auto"
+              style={{
+                maxHeight: "300px", // 内容区域最大高度
+                scrollbarWidth: "thin",
+                scrollbarColor: "rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1)",
+              }}
+            >
+              {displayMessage && (
+                <p
+                  className="text-[15px] leading-relaxed text-white font-cn"
+                  style={{
+                    animation: "fadeIn 1s ease-in forwards",
+                  }}
+                >
+                  {message}
+                </p>
+              )}
+            </div>
+            
+            {/* 标签部分 - 不在滑动区域内 */}
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-white/10 text-white/80 rounded-full px-3 py-1 text-xs border border-white/30"
+                    style={{
+                      opacity: visibleTags.includes(index) ? 1 : 0,
+                      transition: "opacity 0.5s ease-in",
+                    }}
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
             )}
-          </div>
+            
+            </div>
+          
+          {/* 操作按钮 - 卡片外部 */}
+          {displayMessage && (
+            <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-4" style={{ top: "calc(20% + 70px + 230px)" }}>
+              <button 
+                onClick={handleLikeToggle}
+                className="text-white hover:text-white/80 transition-colors duration-200 text-base font-cn"
+              >
+                同频{isLiked ? "❤️" : "🤍"}
+              </button>
+              <Link
+                to="/message"
+                search={{
+                  star: `碎星#${starNumber}`,
+                  content: message,
+                  tags: tags.join(","),
+                  from: "shiguang",
+                  liked: isLiked.toString()
+                }}
+                className="text-white hover:text-white/80 transition-colors duration-200 text-base font-cn"
+              >
+                留言→
+              </Link>
+              <button 
+                onClick={handleReCatch}
+                className="text-white hover:text-white/80 transition-colors duration-200 text-base font-cn"
+              >
+                ←再摘一颗
+              </button>
+            </div>
+          )}
         </div>
       )}
-    </div>
+
+          </PageShell>
   );
 }

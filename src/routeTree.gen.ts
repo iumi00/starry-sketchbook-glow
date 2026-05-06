@@ -9,21 +9,57 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrailDetailRouteImport } from './routes/trail-detail'
 import { Route as TrailRouteImport } from './routes/trail'
+import { Route as SimilarRouteImport } from './routes/similar'
+import { Route as ShiguangRouteImport } from './routes/shiguang'
+import { Route as MessageRouteImport } from './routes/message'
 import { Route as KeeperRouteImport } from './routes/keeper'
+import { Route as GlimmerNewRouteImport } from './routes/glimmer-new'
+import { Route as GlimmerFixedRouteImport } from './routes/glimmer-fixed'
 import { Route as GlimmerRouteImport } from './routes/glimmer'
 import { Route as EchoRouteImport } from './routes/echo'
 import { Route as CarveRouteImport } from './routes/carve'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TrailDetailRoute = TrailDetailRouteImport.update({
+  id: '/trail-detail',
+  path: '/trail-detail',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrailRoute = TrailRouteImport.update({
   id: '/trail',
   path: '/trail',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SimilarRoute = SimilarRouteImport.update({
+  id: '/similar',
+  path: '/similar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShiguangRoute = ShiguangRouteImport.update({
+  id: '/shiguang',
+  path: '/shiguang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessageRoute = MessageRouteImport.update({
+  id: '/message',
+  path: '/message',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KeeperRoute = KeeperRouteImport.update({
   id: '/keeper',
   path: '/keeper',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlimmerNewRoute = GlimmerNewRouteImport.update({
+  id: '/glimmer-new',
+  path: '/glimmer-new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlimmerFixedRoute = GlimmerFixedRouteImport.update({
+  id: '/glimmer-fixed',
+  path: '/glimmer-fixed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GlimmerRoute = GlimmerRouteImport.update({
@@ -52,16 +88,28 @@ export interface FileRoutesByFullPath {
   '/carve': typeof CarveRoute
   '/echo': typeof EchoRoute
   '/glimmer': typeof GlimmerRoute
+  '/glimmer-fixed': typeof GlimmerFixedRoute
+  '/glimmer-new': typeof GlimmerNewRoute
   '/keeper': typeof KeeperRoute
+  '/message': typeof MessageRoute
+  '/shiguang': typeof ShiguangRoute
+  '/similar': typeof SimilarRoute
   '/trail': typeof TrailRoute
+  '/trail-detail': typeof TrailDetailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/carve': typeof CarveRoute
   '/echo': typeof EchoRoute
   '/glimmer': typeof GlimmerRoute
+  '/glimmer-fixed': typeof GlimmerFixedRoute
+  '/glimmer-new': typeof GlimmerNewRoute
   '/keeper': typeof KeeperRoute
+  '/message': typeof MessageRoute
+  '/shiguang': typeof ShiguangRoute
+  '/similar': typeof SimilarRoute
   '/trail': typeof TrailRoute
+  '/trail-detail': typeof TrailDetailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,15 +117,58 @@ export interface FileRoutesById {
   '/carve': typeof CarveRoute
   '/echo': typeof EchoRoute
   '/glimmer': typeof GlimmerRoute
+  '/glimmer-fixed': typeof GlimmerFixedRoute
+  '/glimmer-new': typeof GlimmerNewRoute
   '/keeper': typeof KeeperRoute
+  '/message': typeof MessageRoute
+  '/shiguang': typeof ShiguangRoute
+  '/similar': typeof SimilarRoute
   '/trail': typeof TrailRoute
+  '/trail-detail': typeof TrailDetailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/carve' | '/echo' | '/glimmer' | '/keeper' | '/trail'
+  fullPaths:
+    | '/'
+    | '/carve'
+    | '/echo'
+    | '/glimmer'
+    | '/glimmer-fixed'
+    | '/glimmer-new'
+    | '/keeper'
+    | '/message'
+    | '/shiguang'
+    | '/similar'
+    | '/trail'
+    | '/trail-detail'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/carve' | '/echo' | '/glimmer' | '/keeper' | '/trail'
-  id: '__root__' | '/' | '/carve' | '/echo' | '/glimmer' | '/keeper' | '/trail'
+  to:
+    | '/'
+    | '/carve'
+    | '/echo'
+    | '/glimmer'
+    | '/glimmer-fixed'
+    | '/glimmer-new'
+    | '/keeper'
+    | '/message'
+    | '/shiguang'
+    | '/similar'
+    | '/trail'
+    | '/trail-detail'
+  id:
+    | '__root__'
+    | '/'
+    | '/carve'
+    | '/echo'
+    | '/glimmer'
+    | '/glimmer-fixed'
+    | '/glimmer-new'
+    | '/keeper'
+    | '/message'
+    | '/shiguang'
+    | '/similar'
+    | '/trail'
+    | '/trail-detail'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -85,12 +176,25 @@ export interface RootRouteChildren {
   CarveRoute: typeof CarveRoute
   EchoRoute: typeof EchoRoute
   GlimmerRoute: typeof GlimmerRoute
+  GlimmerFixedRoute: typeof GlimmerFixedRoute
+  GlimmerNewRoute: typeof GlimmerNewRoute
   KeeperRoute: typeof KeeperRoute
+  MessageRoute: typeof MessageRoute
+  ShiguangRoute: typeof ShiguangRoute
+  SimilarRoute: typeof SimilarRoute
   TrailRoute: typeof TrailRoute
+  TrailDetailRoute: typeof TrailDetailRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trail-detail': {
+      id: '/trail-detail'
+      path: '/trail-detail'
+      fullPath: '/trail-detail'
+      preLoaderRoute: typeof TrailDetailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trail': {
       id: '/trail'
       path: '/trail'
@@ -98,11 +202,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/similar': {
+      id: '/similar'
+      path: '/similar'
+      fullPath: '/similar'
+      preLoaderRoute: typeof SimilarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shiguang': {
+      id: '/shiguang'
+      path: '/shiguang'
+      fullPath: '/shiguang'
+      preLoaderRoute: typeof ShiguangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/message': {
+      id: '/message'
+      path: '/message'
+      fullPath: '/message'
+      preLoaderRoute: typeof MessageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/keeper': {
       id: '/keeper'
       path: '/keeper'
       fullPath: '/keeper'
       preLoaderRoute: typeof KeeperRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/glimmer-new': {
+      id: '/glimmer-new'
+      path: '/glimmer-new'
+      fullPath: '/glimmer-new'
+      preLoaderRoute: typeof GlimmerNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/glimmer-fixed': {
+      id: '/glimmer-fixed'
+      path: '/glimmer-fixed'
+      fullPath: '/glimmer-fixed'
+      preLoaderRoute: typeof GlimmerFixedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/glimmer': {
@@ -141,8 +280,14 @@ const rootRouteChildren: RootRouteChildren = {
   CarveRoute: CarveRoute,
   EchoRoute: EchoRoute,
   GlimmerRoute: GlimmerRoute,
+  GlimmerFixedRoute: GlimmerFixedRoute,
+  GlimmerNewRoute: GlimmerNewRoute,
   KeeperRoute: KeeperRoute,
+  MessageRoute: MessageRoute,
+  ShiguangRoute: ShiguangRoute,
+  SimilarRoute: SimilarRoute,
   TrailRoute: TrailRoute,
+  TrailDetailRoute: TrailDetailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

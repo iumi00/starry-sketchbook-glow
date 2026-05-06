@@ -10,7 +10,7 @@ export const Route = createFileRoute("/keeper")({
 
 type Msg = { role: "ai" | "me"; text: string };
 
-const OPENING = "我在。这里是南极的某个角落，没有别人。你想说什么都可以。";
+const OPENING = "外面的风雪很大，进来坐坐吧。这里是南极的某个角落，我是这里的守夜人。看你带着一身的疲惫，这里没有别人，你想说什么都可以。";
 
 // Demo：模拟流式回复（无后端时的兜底）
 const FAKE_REPLIES = [
@@ -35,27 +35,65 @@ function Keeper() {
     const my = v.trim();
     setMsgs((m) => [...m, { role: "me", text: my }]);
     setV("");
-    // 模拟打字机流式
-    const reply = FAKE_REPLIES[Math.floor(Math.random() * FAKE_REPLIES.length)];
+    
+    // 特殊回复逻辑
+    if (my === "我好难过") {
+      // 三条回复，每条间隔0.5秒
+      const replies = [
+        "难过是你心里的雪，也在下。",
+        "但你还能走进来，说明你还没有被冻住。",
+        "坐吧，等雪停，炉火还旺，夜还长，你可以跟我说说。"
+      ];
+      
+      // 等待1秒后开始第一条回复
+      setTimeout(() => {
+        sendReplyWithTypewriter(replies[0], () => {
+          // 第一条回复完成后，等待0.5秒发送第二条
+          setTimeout(() => {
+            sendReplyWithTypewriter(replies[1], () => {
+              // 第二条回复完成后，等待0.5秒发送第三条
+              setTimeout(() => {
+                sendReplyWithTypewriter(replies[2], () => {
+                  setStreaming(false);
+                });
+              }, 500);
+            });
+          }, 500);
+        });
+      }, 1000);
+    } else {
+      const reply = FAKE_REPLIES[Math.floor(Math.random() * FAKE_REPLIES.length)];
+      
+      // 等待1秒后开始回复
+      setTimeout(() => {
+        sendReplyWithTypewriter(reply, () => {
+          setStreaming(false);
+        });
+      }, 1000);
+    }
+  };
+
+  // 打字机式回复函数
+  const sendReplyWithTypewriter = (text: string, onComplete: () => void) => {
     setStreaming(true);
     setMsgs((m) => [...m, { role: "ai", text: "" }]);
     let i = 0;
     const id = setInterval(() => {
       i++;
       setMsgs((m) => {
-        const next = [...m];
-        next[next.length - 1] = { role: "ai", text: reply.slice(0, i) };
-        return next;
-      });
-      if (i >= reply.length) {
-        clearInterval(id);
-        setStreaming(false);
-      }
-    }, 55);
+          const next = [...m];
+          next[next.length - 1] = { role: "ai", text: text.slice(0, i) };
+          return next;
+        });
+        if (i >= text.length) {
+          clearInterval(id);
+          onComplete();
+        }
+    }, 200); // 更慢的打字机效果
   };
 
   return (
-    <PageShell title="守夜人" subtitle="温柔的同龄人 · 只是陪着 · 不说教">
+    <PageShell title="守夜人" subtitle="无论天多黑，时间多晚，守夜人一直陪你等天亮">
       <div className="mx-auto max-w-md flex flex-col h-[calc(100vh-220px)]">
         <div ref={scrollRef} className="flex-1 overflow-y-auto pr-1 space-y-4">
           {msgs.map((m, i) => (
