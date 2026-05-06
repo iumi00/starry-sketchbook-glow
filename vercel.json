@@ -6,7 +6,7 @@
   "devCommand": "npm run dev",
   "functions": {
     "dist/server/index.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node"
     }
   },
   "rewrites": [
