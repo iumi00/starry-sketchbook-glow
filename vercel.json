@@ -1,27 +1,23 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
+  "framework": null,
   "installCommand": "npm install",
   "devCommand": "npm run dev",
+  "functions": {
+    "dist/server/index.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/dist/server/index.js"
     }
   ],
   "headers": [
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/static/(.*)",
+      "source": "/dist/client/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
